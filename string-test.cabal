@@ -10,5 +10,5 @@ executable string-test
   other-modules:       ChunkedAddr Chunked ChunkedO2 Lazy Unroll4 Unroll Unrolled
   build-depends:       base, criterion
   ghc-options:         -ddump-to-file -ddump-simpl -ddump-stg -ddump-cmm -ddump-asm
-  ghc-options:         -dsuppress-idinfo
+  ghc-options:         -dsuppress-idinfo -rtsopts -fproc-alignment=64 -dno-typeable-binds
   default-language:    Haskell2010
