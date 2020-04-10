@@ -7,7 +7,7 @@ build-type:          Simple
 
 executable string-test
   main-is:             Main.hs
-  other-modules:       ChunkedAddr Chunked ChunkedO2 Lazy Unroll4 Unroll
+  other-modules:       ChunkedAddr Chunked ChunkedO2 Lazy Unroll4 Unroll Unrolled
   build-depends:       base, criterion
   ghc-options:         -ddump-to-file -ddump-simpl -ddump-stg -ddump-cmm -ddump-asm
   ghc-options:         -dsuppress-idinfo
