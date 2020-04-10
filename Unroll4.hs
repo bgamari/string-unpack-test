@@ -2,11 +2,18 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS_GHC -O1 #-}
 
 module Unroll4 (
-  unpackAppendCString#,
-  unpackCString#
+  unpackAppendCString4#, unpackCString4#,
+  unpackAppendCString8#, unpackCString8#,
+  unpackAppendCString16#, unpackCString16#,
+  unpackAppendCString32#, unpackCString32#
 ) where
 
 import GHC.Exts
@@ -25,15 +32,42 @@ orEnd dl Nothing = dl
 orEnd dl (Just x) = dl . (x:)
 {-# INLINE orEnd #-}
 
-unpackAppendCString# :: Addr# -> [Char] -> [Char]
-{-# NOINLINE unpackAppendCString# #-}
-unpackAppendCString# addr rest = unpackAppendCString'# rest addr
+----
+unpackAppendCString4# :: Addr# -> [Char] -> [Char]
+{-# NOINLINE unpackAppendCString4# #-}
+unpackAppendCString4# addr rest = unpackAppendCString'# @N4 rest addr
 
-unpackCString# :: Addr# -> [Char]
-{-# NOINLINE CONLIKE unpackCString# #-}
-unpackCString# addr = unpackAppendCString'# [] addr
+unpackCString4# :: Addr# -> [Char]
+{-# NOINLINE CONLIKE unpackCString4# #-}
+unpackCString4# addr = unpackAppendCString'# @N4 [] addr
+----
+unpackAppendCString8# :: Addr# -> [Char] -> [Char]
+{-# NOINLINE unpackAppendCString8# #-}
+unpackAppendCString8# addr rest = unpackAppendCString'# @N8 rest addr
 
-unpackAppendCString'# :: [Char] -> Addr# -> [Char]
+unpackCString8# :: Addr# -> [Char]
+{-# NOINLINE CONLIKE unpackCString8# #-}
+unpackCString8# addr = unpackAppendCString'# @N8 [] addr
+----
+unpackAppendCString16# :: Addr# -> [Char] -> [Char]
+{-# NOINLINE unpackAppendCString16# #-}
+unpackAppendCString16# addr rest = unpackAppendCString'# @N16 rest addr
+
+unpackCString16# :: Addr# -> [Char]
+{-# NOINLINE CONLIKE unpackCString16# #-}
+unpackCString16# addr = unpackAppendCString'# @N16 [] addr
+----
+unpackAppendCString32# :: Addr# -> [Char] -> [Char]
+{-# NOINLINE unpackAppendCString32# #-}
+unpackAppendCString32# addr rest = unpackAppendCString'# @N32 rest addr
+
+unpackCString32# :: Addr# -> [Char]
+{-# NOINLINE CONLIKE unpackCString32# #-}
+unpackCString32# addr = unpackAppendCString'# @N32 [] addr
+----
+
+unpackAppendCString'# :: forall (n::Nat). (IsNatural n, Unroll (Pred n))
+                      => [Char] -> Addr# -> [Char]
 {-# INLINE unpackAppendCString'# #-}
 unpackAppendCString'# rest0 addr0 = goStrict addr0
   where
@@ -42,7 +76,9 @@ unpackAppendCString'# rest0 addr0 = goStrict addr0
       --case unpackChar# 0# addr of
       --  Nothing -> rest0
       --  Just c  -> c : (...)
-      snd $ unroll @(Pred N32) (unpackOne rest0) (Addr addr, goStrict (addr `plusAddr#` 32#))
+      snd $ unroll @(Pred n) (unpackOne rest0) (Addr addr, goStrict (addr `plusAddr#` chunkSize))
+
+    I# chunkSize = natValue @n
 
 data Addr = Addr Addr#
 

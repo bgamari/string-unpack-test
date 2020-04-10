@@ -50,3 +50,12 @@ five = plusFive 0
 
 plusFive :: Int -> Int
 plusFive = unroll @N4 succ
+
+class IsNatural (n :: Nat) where
+  natValue :: Int
+
+instance IsNatural 'Zero where
+  natValue = 0
+
+instance IsNatural n => IsNatural ('Succ n) where
+  natValue = 1 + natValue @n
