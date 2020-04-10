@@ -27,7 +27,7 @@ withLit f (Lit s) = f s
 main :: IO ()
 main = do
   print $ withLit Lazy.unpackCString# lit
-  print $ withLit Unroll4.unpackCString4# lit
+  print $ withLit Unrolled.unpackCString4# lit
   defaultMain
     [ bench "lazy" $ nf (withLit Lazy.unpackCString#) lit
     , bench "chunked-32" $ nf (withLit Chunked.unpackCString32#) lit

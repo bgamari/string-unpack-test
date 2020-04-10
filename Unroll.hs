@@ -7,20 +7,21 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Unroll where
 
 data Nat = Zero | Succ Nat
 
-class Unroll (n :: Nat) where
-  unroll :: (a -> a) -> (a -> a)
+class IsNatural n => Unroll (n :: Nat) where
+  unroll :: (Int -> a -> a) -> (a -> a)
 
 instance Unroll n => Unroll ('Succ n) where
-  unroll f = f . unroll @n f
+  unroll f = unroll @n f . f (natValue @('Succ n))
   {-# INLINE unroll #-}
 
 instance Unroll 'Zero where
-  unroll = id
+  unroll _ = id
   {-# INLINE unroll #-}
 
 type N0 = Zero
@@ -44,13 +45,6 @@ type N8 = N4 + N4
 type N16 = N8 + N8
 type N32 = N16 + N16
 
--- Testing
-five :: Int
-five = plusFive 0
-
-plusFive :: Int -> Int
-plusFive = unroll @N4 succ
-
 class IsNatural (n :: Nat) where
   natValue :: Int
 
@@ -59,3 +53,10 @@ instance IsNatural 'Zero where
 
 instance IsNatural n => IsNatural ('Succ n) where
   natValue = 1 + natValue @n
+
+-- Testing
+four :: Int
+four = plusFour 0
+
+plusFour :: Int -> Int
+plusFour = unroll @N4 (const succ)

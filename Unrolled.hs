@@ -66,26 +66,26 @@ unpackCString32# :: Addr# -> [Char]
 unpackCString32# addr = unpackAppendCString'# @N32 [] addr
 ----
 
-unpackAppendCString'# :: forall (n::Nat). (IsNatural n, Unroll (Pred n))
+unpackAppendCString'# :: forall (n::Nat). (IsNatural n, Unroll n)
                       => [Char] -> Addr# -> [Char]
 {-# INLINE unpackAppendCString'# #-}
 unpackAppendCString'# rest0 addr0 = goStrict addr0
   where
     goStrict :: Addr# -> [Char]
     goStrict addr =
-      --case unpackChar# 0# addr of
-      --  Nothing -> rest0
-      --  Just c  -> c : (...)
-      snd $ unroll @(Pred n) (unpackOne rest0) (Addr addr, goStrict (addr `plusAddr#` chunkSize))
+        --case unpackChar# 0# addr of
+        --  Nothing -> rest0
+        --  Just c  -> c : (...)
+        unroll @n unpackOne (goStrict (addr `plusAddr#` chunkSize))
+      where
+        unpackOne :: Int -> [Char] -> [Char]
+        unpackOne off rest =
+          case unpackChar# off# addr of
+            Nothing  -> rest0
+            Just c   -> c : rest
+          where
+            I# off# = off
+        {-# INLINE unpackOne #-}
 
     I# chunkSize = natValue @n
-
-data Addr = Addr Addr#
-
--- TODO: This is wrong; it will be backwards
-unpackOne :: [Char] -> (Addr, [Char]) -> (Addr, [Char])
-unpackOne rest0 (Addr addr, rest) =
-  case unpackChar# 0# addr of
-    Nothing  -> (Addr addr, rest0)
-    Just c   -> (Addr (addr `plusAddr#` 1#), c : rest)
 
