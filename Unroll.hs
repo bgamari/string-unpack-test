@@ -21,7 +21,7 @@ instance Unroll n => Unroll ('Succ n) where
   {-# INLINE unroll #-}
 
 instance Unroll 'Zero where
-  unroll _ = id
+  unroll f = f 0
   {-# INLINE unroll #-}
 
 type N0 = Zero
@@ -41,7 +41,7 @@ type family (:*) (n :: Nat) (m :: Nat) :: Nat where
 type family Pred (n :: Nat) where
   Pred ('Succ m) = m
 
-type N8 = N4 + N4
+type N8  = N4 + N4
 type N16 = N8 + N8
 type N32 = N16 + N16
 
@@ -59,4 +59,7 @@ four :: Int
 four = plusFour 0
 
 plusFour :: Int -> Int
-plusFour = unroll @N4 (const succ)
+plusFour = unroll @N3 (const succ)
+
+ints :: [Int]
+ints = unroll @N3 (:) []
